@@ -46,7 +46,7 @@ def get_audio_duration_seconds(mp3_path: Path) -> float:
 			"ffprobe",
 			"-v", "error",
 			"-show_entries", "format=duration",
-			"-of", "default=noprint_wrapper=1:nokey=1",
+			"-of", "default=noprint_wrappers=1:nokey=1",
 			str(mp3_path),
 		],
 		capture_output=True,
