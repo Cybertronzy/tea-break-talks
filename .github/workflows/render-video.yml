@@ -17,8 +17,19 @@ jobs:
         with:
           node-version: 20
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Install the voice generator
+        run: pip install edge-tts
+
+      - name: Generate the voice-over
+        run: python3 scripts/generate_audio.py dam
 
       - name: Render the video
         run: npx remotion render src/index.ts DamDialogue out/dam-dialogue.mp4
