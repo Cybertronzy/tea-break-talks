@@ -51,14 +51,41 @@ def get_audio_duration_seconds(mp3_path: Path) -> float:
 		],
 		capture_output=True,
 		text=True,
-		check=True,
 	)
+	if result.returncode != 0 or not result.stdout.strip():
+		raise RuntimeError(
+			f"ffprobe couldn't read {mp3_path.name} "
+			f"({mp3_path.stat().st_size if mp3_path.exists() else 0} bytes "
+			f"on disk). ffprobe said: {result.stderr.strip()}"
+		)
 	return float(result.stdout.strip())
 
 
 async def generate_line(text: str, voice: str, out_path: Path) -> None:
 	communicate = edge_tts.Communicate(text, voice)
 	await communicate.save(str(out_path))
+
+
+async def generate_line_with_retries(
+	text: str, voice: str, out_path: Path, attempts: int = 3
+) -> None:
+	"""The voice service occasionally hiccups on a cold connection — retry
+	a couple of times with a short pause before giving up on this line."""
+	last_error: Exception | None = None
+	for attempt in range(1, attempts + 1):
+		try:
+			await generate_line(text, voice, out_path)
+			if out_path.exists() and out_path.stat().st_size > 0:
+				return
+			last_error = RuntimeError("clip came back empty (0 bytes)")
+		except Exception as error:  # noqa: BLE001 - we want to retry anything
+			last_error = error
+		print(f"    attempt {attempt}/{attempts} failed: {last_error}")
+		await asyncio.sleep(2)
+	raise RuntimeError(
+		f"Could not generate audio for {out_path.name} after "
+		f"{attempts} attempts: {last_error}"
+	)
 
 
 async def main(script_name: str) -> None:
@@ -75,7 +102,7 @@ async def main(script_name: str) -> None:
 		out_path = audio_dir / f"line-{i}.mp3"
 		voice = voices[line["speaker"]]
 		print(f"  [{i}] ({line['speaker']}/{voice}) {line['text'][:50]!r}")
-		await generate_line(line["text"], voice, out_path)
+		await generate_line_with_retries(line["text"], voice, out_path)
 
 		duration_s = get_audio_duration_seconds(out_path)
 		frames = max(
