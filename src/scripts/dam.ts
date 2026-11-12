@@ -1,4 +1,7 @@
+import {staticFile} from 'remotion';
 import type {DialogueLine} from '../DialogueVideo';
+import content from './dam.content.json';
+import timings from './dam.timings.json';
 
 // Pair 4 — Teal & Terracotta
 export const damColors = {
@@ -6,14 +9,13 @@ export const damColors = {
 	colorB: '#C1663A',
 };
 
-export const damLines: DialogueLine[] = [
-	{speaker: 'A', text: 'What stops a river from flooding everything in its path?', durationInFrames: 105},
-	{speaker: 'B', text: 'The dam.', durationInFrames: 60},
-	{speaker: 'A', text: "Isn't that a cruel thing to do to a river?", durationInFrames: 105},
-	{speaker: 'B', text: "It's not stopping it. It's containing it.", durationInFrames: 90},
-	{speaker: 'A', text: "What if we broke the dam? Wouldn't the river finally be free?", durationInFrames: 120},
-	{speaker: 'B', text: 'For a moment. Then where does all that power go?', durationInFrames: 105},
-	{speaker: 'B', text: "Without the dam, the river doesn't flow — it drowns every village downstream.", durationInFrames: 135},
-	{speaker: 'A', text: 'Strange... we call control a cruelty, and chaos a freedom.', durationInFrames: 120},
-	{speaker: 'B', text: "Sometimes the thing holding you back is the only reason you haven't destroyed everything you love.", durationInFrames: 210},
-];
+// The actual words live in dam.content.json (shared with the Python voice
+// generator). dam.timings.json is regenerated from the real audio length
+// every time scripts/generate_audio.py runs — the numbers checked in here
+// are just a safe fallback so the project still renders before that's run.
+export const damLines: DialogueLine[] = content.lines.map((line, i) => ({
+	speaker: line.speaker as 'A' | 'B',
+	text: line.text,
+	durationInFrames: timings[i] ?? 90,
+	audioSrc: staticFile(`audio/dam/line-${i}.mp3`),
+}));

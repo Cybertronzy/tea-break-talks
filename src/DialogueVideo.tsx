@@ -1,6 +1,7 @@
 import React from 'react';
 import {
 	AbsoluteFill,
+	Audio,
 	Sequence,
 	useCurrentFrame,
 	useVideoConfig,
@@ -13,6 +14,9 @@ import {SpeechBubble} from './SpeechBubble';
 export type DialogueLine = {
 	speaker: 'A' | 'B';
 	text: string;
+	// Path to this line's generated voice-over (see scripts/generate_audio.py).
+	// Optional so a script can still be written/previewed before audio exists.
+	audioSrc?: string;
 	durationInFrames: number;
 };
 
@@ -193,14 +197,17 @@ const Line: React.FC<{line: DialogueLine; colorA: string; colorB: string}> = ({
 	const isA = line.speaker === 'A';
 
 	return (
-		<SpeechBubble
-			text={line.text}
-			side={isA ? 'left' : 'right'}
-			accentColor={isA ? colorA : colorB}
-			opacity={opacity}
-			rise={rise}
-			bottom={BUBBLE_BOTTOM}
-		/>
+		<>
+			{line.audioSrc ? <Audio src={line.audioSrc} /> : null}
+			<SpeechBubble
+				text={line.text}
+				side={isA ? 'left' : 'right'}
+				accentColor={isA ? colorA : colorB}
+				opacity={opacity}
+				rise={rise}
+				bottom={BUBBLE_BOTTOM}
+			/>
+		</>
 	);
 };
 

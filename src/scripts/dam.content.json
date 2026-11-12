@@ -1,0 +1,15 @@
+{
+	"voiceA": "en-IN-NeerjaNeural",
+	"voiceB": "en-IN-PrabhatNeural",
+	"lines": [
+		{"speaker": "A", "text": "What stops a river from flooding everything in its path?"},
+		{"speaker": "B", "text": "The dam."},
+		{"speaker": "A", "text": "Isn't that a cruel thing to do to a river?"},
+		{"speaker": "B", "text": "It's not stopping it. It's containing it."},
+		{"speaker": "A", "text": "What if we broke the dam? Wouldn't the river finally be free?"},
+		{"speaker": "B", "text": "For a moment. Then where does all that power go?"},
+		{"speaker": "B", "text": "Without the dam, the river doesn't flow — it drowns every village downstream."},
+		{"speaker": "A", "text": "Strange... we call control a cruelty, and chaos a freedom."},
+		{"speaker": "B", "text": "Sometimes the thing holding you back is the only reason you haven't destroyed everything you love."}
+	]
+}

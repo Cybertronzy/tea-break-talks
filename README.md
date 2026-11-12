@@ -7,10 +7,20 @@ render automatically on GitHub's free servers instead of your laptop.
 ## What's in here
 
 - `src/Character.tsx` — the reusable ZooZoo-style mascot (color + role = curious/wise as props)
-- `src/DialogueVideo.tsx` — the video template: star background, text reveal, character highlight
-- `src/scripts/dam.ts` — the first script's dialogue lines, timing and colors
+- `src/DialogueVideo.tsx` — the video template: star background, title banner, text + voice reveal, character highlight
+- `src/scripts/dam.content.json` — the first script's actual words (speaker + text + which voice each speaker uses)
+- `src/scripts/dam.timings.json` — auto-generated: how long each line should stay on screen, measured from its real voice clip
+- `src/scripts/dam.ts` — glues the above two together into what the video template needs
+- `scripts/generate_audio.py` — turns `dam.content.json` into voice clips (`public/audio/dam/line-N.mp3`) using [edge-tts](https://github.com/rany2/edge-tts), a free, no-API-key wrapper around Microsoft Edge's neural "Read Aloud" voices
 - `src/Root.tsx` — registers the video so Remotion knows its size/length
-- `.github/workflows/render-video.yml` — the GitHub Action that renders it in the cloud
+- `.github/workflows/render-video.yml` — the GitHub Action that generates the voices and renders the video in the cloud
+
+### Changing the voices
+
+`dam.content.json` has `"voiceA"` and `"voiceB"` fields — swap either one for
+any other edge-tts voice name (run `edge-tts --list-voices` if you ever set
+up Python locally to see the full list; it covers dozens of languages and
+accents, including several Indian-English and Hindi voices).
 
 ## Getting this rendering on GitHub (no coding needed)
 
