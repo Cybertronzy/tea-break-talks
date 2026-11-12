@@ -1,0 +1,30 @@
+name: Render dialogue video
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Render the video
+        run: npx remotion render src/index.ts DamDialogue out/dam-dialogue.mp4
+
+      - name: Upload the rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: dam-dialogue
+          path: out/dam-dialogue.mp4
