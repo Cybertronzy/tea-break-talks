@@ -26,6 +26,10 @@ export type DialogueVideoProps = {
 	colorA: string;
 	colorB: string;
 	seriesTitle?: string;
+	// Turns on the flowing river + dam backdrop (see RiverDamScene below) —
+	// enabled per-script, since each metaphor gets its own matching backdrop
+	// over time rather than one generic scene for all 39 videos.
+	riverDam?: boolean;
 };
 
 const SeriesTitle: React.FC<{title: string; colorA: string; colorB: string}> = ({
@@ -170,6 +174,127 @@ const StarField: React.FC = () => {
 	);
 };
 
+// Optional per-script backdrop — the "dam & river" script gets a flowing
+// river with a dam silhouette in the gap between the title banner and the
+// speech bubbles. Built entirely from animated SVG shapes (no video/gif
+// asset) so it renders crisply at any resolution and costs nothing extra to
+// loop. Off by default — future scripts with a different metaphor simply
+// don't pass riverDam, and nothing here renders.
+const RIVER_TOP = 400;
+const RIVER_HEIGHT = 160;
+const DAM_X = 700;
+const DAM_WIDTH = 70;
+
+// A handful of droplets that fall from the dam's spillway on a repeating
+// cycle (via frame % cycleLength), each with its own column + timing offset
+// so they don't all fall in lockstep.
+const SPILLWAY_DROPS = [
+	{x: DAM_X + 8, offset: 0, cycle: 42},
+	{x: DAM_X + 22, offset: 14, cycle: 38},
+	{x: DAM_X + 38, offset: 26, cycle: 45},
+	{x: DAM_X + 54, offset: 8, cycle: 40},
+	{x: DAM_X + 66, offset: 20, cycle: 36},
+];
+
+const RiverDamScene: React.FC<{frame: number; fps: number}> = ({frame, fps}) => {
+	// Horizontal offset used to scroll the dashed "current" lines rightward —
+	// the classic trick for reading as flowing water without any real video.
+	const flowOffset = (frame * 2.2) % 64;
+
+	// Gentle vertical bob for the wave crest so the surface feels alive even
+	// where the dashed current lines aren't crossing.
+	const crestBob = Math.sin((frame / fps) * 1.1) * 4;
+
+	return (
+		<svg
+			width="100%"
+			height="100%"
+			style={{position: 'absolute', inset: 0}}
+			opacity={0.5}
+		>
+			<defs>
+				<linearGradient id="riverGradient" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stopColor="#1d5a5e" />
+					<stop offset="100%" stopColor="#0f3638" />
+				</linearGradient>
+			</defs>
+
+			{/* The river band itself, with a soft wavy top edge */}
+			<path
+				d={`M0,${RIVER_TOP + crestBob}
+					C 180,${RIVER_TOP - 14 + crestBob} 360,${RIVER_TOP + 14 + crestBob} 540,${RIVER_TOP + crestBob}
+					C 720,${RIVER_TOP - 14 + crestBob} 900,${RIVER_TOP + 14 + crestBob} 1080,${RIVER_TOP + crestBob}
+					L 1080,${RIVER_TOP + RIVER_HEIGHT}
+					L 0,${RIVER_TOP + RIVER_HEIGHT}
+					Z`}
+				fill="url(#riverGradient)"
+			/>
+
+			{/* Three dashed "current" lines that scroll sideways to read as flow */}
+			{[0, 1, 2].map((i) => (
+				<line
+					key={i}
+					x1={-64}
+					x2={1144}
+					y1={RIVER_TOP + 34 + i * 40}
+					y2={RIVER_TOP + 34 + i * 40}
+					stroke="#8fd9d6"
+					strokeOpacity={0.35}
+					strokeWidth={2.5}
+					strokeDasharray="22 18"
+					strokeDashoffset={-flowOffset - i * 9}
+					strokeLinecap="round"
+				/>
+			))}
+
+			{/* The dam: a simple concrete-block pier spanning the river's height */}
+			<rect
+				x={DAM_X}
+				y={RIVER_TOP - 10}
+				width={DAM_WIDTH}
+				height={RIVER_HEIGHT + 10}
+				fill="#6b6f72"
+			/>
+			{[0, 1, 2, 3].map((row) => (
+				<line
+					key={row}
+					x1={DAM_X}
+					x2={DAM_X + DAM_WIDTH}
+					y1={RIVER_TOP - 10 + ((row + 1) * (RIVER_HEIGHT + 10)) / 5}
+					y2={RIVER_TOP - 10 + ((row + 1) * (RIVER_HEIGHT + 10)) / 5}
+					stroke="#55585b"
+					strokeWidth={2}
+				/>
+			))}
+			{/* Spillway notch */}
+			<rect
+				x={DAM_X + 18}
+				y={RIVER_TOP - 10}
+				width={16}
+				height={18}
+				fill="#0f3638"
+			/>
+
+			{/* Falling spray below the spillway */}
+			{SPILLWAY_DROPS.map((d, i) => {
+				const t = ((frame + d.offset) % d.cycle) / d.cycle;
+				const y = RIVER_TOP + 8 + t * (RIVER_HEIGHT - 10);
+				const dropOpacity = Math.sin(t * Math.PI) * 0.8;
+				return (
+					<circle
+						key={i}
+						cx={d.x}
+						cy={y}
+						r={2.2}
+						fill="#cdeeec"
+						opacity={dropOpacity}
+					/>
+				);
+			})}
+		</svg>
+	);
+};
+
 const Line: React.FC<{line: DialogueLine; colorA: string; colorB: string}> = ({
 	line,
 	colorA,
@@ -217,6 +342,7 @@ export const DialogueVideo: React.FC<DialogueVideoProps> = ({
 	colorA,
 	colorB,
 	seriesTitle,
+	riverDam,
 }) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
@@ -241,8 +367,9 @@ export const DialogueVideo: React.FC<DialogueVideoProps> = ({
 			{/* Original, royalty-free ambient pad (synthesized, not sampled from
 			    anywhere) — loops under the whole video regardless of its length,
 			    kept quiet so it never competes with the voice lines. */}
-			<Audio src={staticFile('audio/background.mp3')} loop volume={0.25} />
+			<Audio src={staticFile('audio/background.mp3')} loop volume={0.35} />
 			<StarField />
+			{riverDam ? <RiverDamScene frame={frame} fps={fps} /> : null}
 
 			{seriesTitle ? (
 				<SeriesTitle title={seriesTitle} colorA={colorA} colorB={colorB} />

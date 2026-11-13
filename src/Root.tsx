@@ -21,6 +21,7 @@ export const RemotionRoot: React.FC = () => {
 					colorA: damColors.colorA,
 					colorB: damColors.colorB,
 					seriesTitle: 'TEA BREAK TALKS',
+					riverDam: true,
 				}}
 			/>
 		</>
