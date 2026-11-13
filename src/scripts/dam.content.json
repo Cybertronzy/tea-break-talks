@@ -1,6 +1,6 @@
 {
-	"voiceA": "en-IN-NeerjaNeural",
-	"voiceB": "en-IN-PrabhatNeural",
+	"voiceA": "en-US-AriaNeural",
+	"voiceB": "en-US-GuyNeural",
 	"lines": [
 		{"speaker": "A", "text": "What stops a river from flooding everything in its path?"},
 		{"speaker": "B", "text": "The dam."},
