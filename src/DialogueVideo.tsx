@@ -3,6 +3,7 @@ import {
 	AbsoluteFill,
 	Audio,
 	Sequence,
+	staticFile,
 	useCurrentFrame,
 	useVideoConfig,
 	interpolate,
@@ -237,6 +238,10 @@ export const DialogueVideo: React.FC<DialogueVideoProps> = ({
 
 	return (
 		<AbsoluteFill style={{backgroundColor: '#0c0d16'}}>
+			{/* Original, royalty-free ambient pad (synthesized, not sampled from
+			    anywhere) — loops under the whole video regardless of its length,
+			    kept quiet so it never competes with the voice lines. */}
+			<Audio src={staticFile('audio/background.mp3')} loop volume={0.25} />
 			<StarField />
 
 			{seriesTitle ? (
